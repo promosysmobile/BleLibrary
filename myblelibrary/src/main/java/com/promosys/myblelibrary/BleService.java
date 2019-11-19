@@ -33,14 +33,14 @@ public class BleService {
     public static BluetoothAdapter btAdapter;
     public static BluetoothLeScanner btScanner;
 
-    Boolean btScanning = false;
-    int deviceIndex = 0;
-    ArrayList<BluetoothDevice> devicesDiscovered = new ArrayList<BluetoothDevice>();
-    BluetoothGatt bluetoothGatt;
-    BluetoothGattCharacteristic sendCharacteristic;
-    private String strDevice = "";
+    static Boolean btScanning = false;
+    static int deviceIndex = 0;
+    static ArrayList<BluetoothDevice> devicesDiscovered = new ArrayList<BluetoothDevice>();
+    static BluetoothGatt bluetoothGatt;
+    static BluetoothGattCharacteristic sendCharacteristic;
+    static private String strDevice = "";
 
-    char ETX = (char)0x03;
+    static char ETX = (char)0x03;
 
     public final static String ACTION_GATT_CONNECTED =
             "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
@@ -55,32 +55,32 @@ public class BleService {
 
     public Map<String, String> uuids = new HashMap<String, String>();
 
-    private String CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = "";
-    private String CHARACTERISTIC_WRITE_UUID = "";
-    private String SERVICE_WRITE_UUID = "";
+    private static String CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = "";
+    private static String CHARACTERISTIC_WRITE_UUID = "";
+    private static String SERVICE_WRITE_UUID = "";
 
-    public String SCANNED_MAC_ADDRESS = "";
+    public static String SCANNED_MAC_ADDRESS = "";
 
     // Stops scanning after 5 seconds.
-    private Handler mHandler = new Handler();
+    private static Handler mHandler = new Handler();
     private static final long SCAN_PERIOD = 5000;
 
     // This is the object that receives interactions from clients.
     //private final IBinder mBinder = new LocalBinder();
-    private StringBuffer strBleBuffer = new StringBuffer();
+    private static StringBuffer strBleBuffer = new StringBuffer();
 
-    public boolean isWaitingReply = false;
-    public boolean isSendingPartData = false;
-    public boolean isWaitingBleReply = false;
+    public static boolean isWaitingReply = false;
+    public static boolean isSendingPartData = false;
+    public static boolean isWaitingBleReply = false;
 
-    public boolean isFirstConnected = true;
+    public static boolean isFirstConnected = true;
 
-    public boolean isScanForNearbyDevice = false;
+    public static boolean isScanForNearbyDevice = false;
 
-    private boolean isBluetoothConnected = false;
+    private static boolean isBluetoothConnected = false;
 
-    private int intStringLength = 0;
-    private int intAllowedDataEnd = 15;
+    private static int intStringLength = 0;
+    private static int intAllowedDataEnd = 15;
 
     private static String mBlefirstUid = "";
     private static String mBlesecondUid = "";
@@ -136,7 +136,7 @@ public class BleService {
     }
 
     // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+    private static BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
 
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
@@ -166,7 +166,7 @@ public class BleService {
         }
     };
 
-    public void startConnecting(BluetoothDevice device){
+    public static void startConnecting(BluetoothDevice device){
         strDevice = device.getName();
         devicesDiscovered.add(device);
         deviceIndex++;
@@ -181,7 +181,7 @@ public class BleService {
         }
     }
 
-    public void startScanning() {
+    public static void startScanning() {
         System.out.println("start scanning");
         btScanning = true;
         deviceIndex = 0;
@@ -208,7 +208,7 @@ public class BleService {
         }, SCAN_PERIOD);
     }
 
-    public void stopScanning() {
+    public static void stopScanning() {
         System.out.println("stopping scanning");
         btScanning = false;
         isScanForNearbyDevice = false;
@@ -223,12 +223,12 @@ public class BleService {
         });
     }
 
-    public void connectToDeviceSelected(int deviceIndex) {
+    public static void connectToDeviceSelected(int deviceIndex) {
         int deviceSelected = deviceIndex;
         bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(mBleContext, false, btleGattCallback);
     }
 
-    public void disconnectDeviceSelected() {
+    public static void disconnectDeviceSelected() {
         if(bluetoothGatt != null)
         {
             bluetoothGatt.disconnect();
@@ -246,7 +246,7 @@ public class BleService {
     }
 
     // Device connect call back
-    private final BluetoothGattCallback btleGattCallback = new BluetoothGattCallback() {
+    private static final BluetoothGattCallback btleGattCallback = new BluetoothGattCallback() {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
@@ -355,7 +355,7 @@ public class BleService {
     };
 
     // Display all services available for ble
-    private void displayGattServices(List<BluetoothGattService> gattServices) {
+    private static void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
 
         // Loops through available GATT Services.
@@ -389,7 +389,7 @@ public class BleService {
     }
 
     //Set the notify characteristics
-    public void setCharacteristicNotification(UUID serviceUuid, UUID characteristicUuid,
+    public static void setCharacteristicNotification(UUID serviceUuid, UUID characteristicUuid,
                                               boolean enable) {
         BluetoothGattCharacteristic characteristic = bluetoothGatt.getService(serviceUuid).getCharacteristic(characteristicUuid);
         bluetoothGatt.setCharacteristicNotification(characteristic, enable);
@@ -402,7 +402,7 @@ public class BleService {
     }
 
     // Cut the string to smaller pieces before transmitting (some bluetooth device can accept maximum 20 bytes per transfer)
-    public void sendLongString(String sendString){
+    public static void sendLongString(String sendString){
         Log.i("MyBleService","sendLongString: " + sendString);
         if(isBluetoothConnected){
             if(!isWaitingReply){
@@ -446,7 +446,7 @@ public class BleService {
     }
 
     //For firmware update
-    public void uploadingBin2(String sendStr){
+    public static void uploadingBin2(String sendStr){
         if(!isWaitingReply){
             isWaitingReply = true;
 
@@ -489,7 +489,7 @@ public class BleService {
     }
 
     //Write String to bluetooth device
-    public void writeCustomCharacteristic(String message) {
+    public static void writeCustomCharacteristic(String message) {
         if(isBluetoothConnected){
             if (btAdapter == null || bluetoothGatt == null) {
                 Log.i("MainActivity", "BluetoothAdapter not initialized");
@@ -522,7 +522,7 @@ public class BleService {
 
 
     //To transfer data to MainActivity
-    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
+    private static void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         Log.i("BleService","got data available");
         try {
             if(characteristic.getValue()!= null){
