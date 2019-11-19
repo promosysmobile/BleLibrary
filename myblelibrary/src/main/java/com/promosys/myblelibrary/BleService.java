@@ -118,7 +118,7 @@ public class BleService {
     }
      */
 
-    private void initBle(Context bleContext, boolean isProjectNew, String firstUid, String secondUid){
+    public void initBle(Context bleContext, boolean isProjectNew, String firstUid, String secondUid){
         this.firstUid = firstUid;
         this.secondUid = secondUid;
         this.bleContext = bleContext;
@@ -166,7 +166,7 @@ public class BleService {
         }
     };
 
-    private void startConnecting(BluetoothDevice device){
+    public void startConnecting(BluetoothDevice device){
         strDevice = device.getName();
         devicesDiscovered.add(device);
         deviceIndex++;
