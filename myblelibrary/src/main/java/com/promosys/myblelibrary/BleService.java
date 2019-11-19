@@ -270,10 +270,14 @@ public class BleService {
              */
 
             if(mBleisNewVersion){
+                isWaitingBleReply = false;
+                isWaitingReply = false;
                 sendToMainActivity(mBroadcastBleGotReply,messageString,"bleMessage");
             }else {
                 //check whether the message is from the correct ble device
                 if (messageString.contains(String.valueOf(ETX))){
+                    isWaitingBleReply = false;
+                    isWaitingReply = false;
                     strBleBuffer.append(messageString);
                     final String strSubMessage = strBleBuffer.toString();
                     strBleBuffer.delete(0,strBleBuffer.length()-1);
@@ -403,21 +407,16 @@ public class BleService {
 
     // Cut the string to smaller pieces before transmitting (some bluetooth device can accept maximum 20 bytes per transfer)
     public static void sendLongString(String sendString){
-        Log.i("MyBleService","sendLongString: " + sendString);
+        Log.i("BleService","sendLongString: " + sendString);
         if(isBluetoothConnected){
             if(!isWaitingReply){
                 isWaitingReply = true;
-
-                if(intStringLength<sendString.length()){
-                    if(intStringLength == 247){
-                        intAllowedDataEnd = 150;
-                    }else {
-                        intAllowedDataEnd = 15;
-                    }
-
+                if(intStringLength > sendString.length()){
+                    writeCustomCharacteristic(sendString);
+                }else {
                     isSendingPartData = true;
                     int data_begin = 0;
-                    int data_end = intAllowedDataEnd;
+                    int data_end = 15;
 
                     while (isSendingPartData){
                         if(!isWaitingBleReply){
@@ -436,10 +435,8 @@ public class BleService {
                             }
                         }
                     }
-                }else {
-                    writeCustomCharacteristic(sendString);
-                }
 
+                }
 
             }
         }
