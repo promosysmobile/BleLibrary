@@ -29,9 +29,9 @@ import java.util.UUID;
 
 public class BleService {
 
-    BluetoothManager btManager;
-    BluetoothAdapter btAdapter;
-    BluetoothLeScanner btScanner;
+    public static BluetoothManager btManager;
+    public static BluetoothAdapter btAdapter;
+    public static BluetoothLeScanner btScanner;
 
     Boolean btScanning = false;
     int deviceIndex = 0;
@@ -82,8 +82,8 @@ public class BleService {
     private int intStringLength = 0;
     private int intAllowedDataEnd = 15;
 
-    private String firstUid = "";
-    private String secondUid = "";
+    private static String mBlefirstUid = "";
+    private static String mBlesecondUid = "";
 
     public static final String mBroadcastBleOff = "promosys.com.myblelibrary.bleoff";
     public static final String mBroadcastBleDisabled = "promosys.com.myblelibrary.bledisabled";
@@ -95,8 +95,8 @@ public class BleService {
     public static final String mBroadcastFailedCharacteristics = "promosys.com.myblelibrary.failedcharacteristics";
     public static final String mBroadcastCheckAlive = "promosys.com.myblelibrary.checkalive";
 
-    public boolean isNewVersion = false;
-    private Context bleContext;
+    public static boolean mBleisNewVersion = false;
+    public static Context mBleContext;
     /*
     //This is called from MainActivity
     @Override
@@ -118,12 +118,12 @@ public class BleService {
     }
      */
 
-    public void initBle(Context bleContext, boolean isProjectNew, String firstUid, String secondUid){
-        this.firstUid = firstUid;
-        this.secondUid = secondUid;
-        this.bleContext = bleContext;
-        isNewVersion = isProjectNew;
-        btManager = (BluetoothManager) this.bleContext.getSystemService(Context.BLUETOOTH_SERVICE);
+    public static void initBle(Context bleContext, boolean isProjectNew, String firstUid, String secondUid){
+        mBlefirstUid = firstUid;
+        mBlesecondUid = secondUid;
+        mBleContext = bleContext;
+        mBleisNewVersion = isProjectNew;
+        btManager = (BluetoothManager) bleContext.getSystemService(Context.BLUETOOTH_SERVICE);
         btAdapter = btManager.getAdapter();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             btScanner = btAdapter.getBluetoothLeScanner();
@@ -148,8 +148,8 @@ public class BleService {
 
                 //Filter device with broadcast name contains certain characters
                 if(isScanForNearbyDevice){
-                    if(device.getName().substring(0,2).contains(firstUid)){
-                        if(device.getName().substring(2,4).contains(secondUid)){
+                    if(device.getName().substring(0,2).contains(mBlefirstUid)){
+                        if(device.getName().substring(2,4).contains(mBlesecondUid)){
                             SCANNED_MAC_ADDRESS = device.getName();
                             startConnecting(device);
                         }
@@ -200,7 +200,7 @@ public class BleService {
             @Override
             public void run() {
                 if(btScanning){
-                    Toast.makeText(bleContext,"Device not found",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mBleContext,"Device not found",Toast.LENGTH_SHORT).show();
                     sendToMainActivity(mBroadcastBleDeviceNotFound,"","");
                     stopScanning();
                 }
@@ -225,7 +225,7 @@ public class BleService {
 
     public void connectToDeviceSelected(int deviceIndex) {
         int deviceSelected = deviceIndex;
-        bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(bleContext, false, btleGattCallback);
+        bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(mBleContext, false, btleGattCallback);
     }
 
     public void disconnectDeviceSelected() {
@@ -235,13 +235,13 @@ public class BleService {
         }
     }
 
-    private void sendToMainActivity(String whichBroadcast,String extra,String extraKey){
+    private static void sendToMainActivity(String whichBroadcast,String extra,String extraKey){
         Intent sendMainActivity = new Intent();
         sendMainActivity.setAction(whichBroadcast);
         if(!(extra.isEmpty())){
             sendMainActivity.putExtra(extraKey,extra);
         }
-        bleContext.sendBroadcast(sendMainActivity);
+        mBleContext.sendBroadcast(sendMainActivity);
 
     }
 
@@ -269,7 +269,7 @@ public class BleService {
             }
              */
 
-            if(isNewVersion){
+            if(mBleisNewVersion){
                 sendToMainActivity(mBroadcastBleGotReply,messageString,"bleMessage");
             }else {
                 //check whether the message is from the correct ble device
