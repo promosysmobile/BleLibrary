@@ -97,26 +97,6 @@ public class BleService {
 
     public static boolean mBleisNewVersion = false;
     public static Context mBleContext;
-    /*
-    //This is called from MainActivity
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        //initBle();
-        return START_NOT_STICKY;
-    }
-
-    //MainActivity will bind to the service for data exchange
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
-
-    public class LocalBinder extends Binder {
-        BleService getService() {
-            return BleService.this;
-        }
-    }
-     */
 
     public static void initBle(Context bleContext, boolean isProjectNew, String firstUid, String secondUid){
         mBlefirstUid = firstUid;
@@ -177,7 +157,14 @@ public class BleService {
 
         if(devicesDiscovered.size() == 1){
             Log.i("MyBleService","Connecting");
-            connectToDeviceSelected(0);
+            //connectToDeviceSelected(0);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    connectToDeviceSelected(0);
+                }
+            }, 1000);
+
         }
     }
 
@@ -225,7 +212,12 @@ public class BleService {
 
     public static void connectToDeviceSelected(int deviceIndex) {
         int deviceSelected = deviceIndex;
-        bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(mBleContext, false, btleGattCallback);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(mBleContext, true, btleGattCallback,BluetoothDevice.TRANSPORT_LE);
+        }else {
+            bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(mBleContext, true, btleGattCallback);
+        }
+        //bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(mBleContext, false, btleGattCallback);
     }
 
     public static void disconnectDeviceSelected() {
@@ -323,7 +315,9 @@ public class BleService {
 
                 //Ble Connected
                 case 2:
+                    gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
                     gatt.requestMtu(512);
+
                     isBluetoothConnected = true;
 
                     break;
